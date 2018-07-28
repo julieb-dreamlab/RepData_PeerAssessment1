@@ -78,13 +78,15 @@ summary(sumsdf)
 
 ## What is the average daily activity pattern?
 Sum the number of steps at each 5-minute interval across all days to see high activity periods.
+Make a time series plot of the 5-minute interval (x-axis)
+and the average number of steps taken, averaged across all days (y-axis).
 
 ```r
 #The steps per 5-minute interval are calculated.
 sm1<- with(actdata, tapply(steps,interval,sum, na.rm=TRUE))
 intsdf<-data.frame(sm1)
 names(intsdf)<- c("sums")
-intsdf<- mutate(intsdf,interval = as.numeric(rownames(intsdf)))
+intsdf<- mutate(intsdf,minutes = 5*(1:nrow(intsdf)),interval = as.numeric(rownames(intsdf)))
 ```
 
 ```
@@ -92,7 +94,7 @@ intsdf<- mutate(intsdf,interval = as.numeric(rownames(intsdf)))
 ```
 
 ```r
-c<-ggplot(intsdf, aes(interval,sums))
+c<-ggplot(intsdf, aes(minutes,sums))
 d<- c+ geom_line()
 d<- d+ labs(x= "Time of Day, minutes")
 d<- d+ labs(y= "Total Steps during an Interval")
@@ -103,12 +105,20 @@ print(d)
 ![](PA1_julieb_files/figure-html/intervals-1.png)<!-- -->
 
 ```r
-maxint<-with(intsdf, intsdf[which(sums == max(sums)),])
+maxint<-with(intsdf, intsdf[which(sums == max(sums)),2])
 ```
-The 5-minute interval where the maximum average number of step taken is {r maxint} (which starts at ).
+The 5-minute interval where the maximum average number of steps are taken is 520.
 
 ## Imputing missing values
+The presence of missing days may introduce bias into some
+calculations or summaries of the data.  
+1. Calculate and report the total number of missing values in the dataset
+(i.e. the total number of rows with NAs).
 
+```r
+sumNAs <-sum(is.na(actdata$steps))
+```
+Answer: The total number of missing step values is: 2304.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
