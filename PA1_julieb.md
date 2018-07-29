@@ -76,22 +76,6 @@ summary(sumsdf)
 ##  Max.   :21194
 ```
 
-```r
-print(c("mean: ", mean(sumsdf$sums)))
-```
-
-```
-## [1] "mean: "           "9354.22950819672"
-```
-
-```r
-print(c("median: ",median(sumsdf$sums)))
-```
-
-```
-## [1] "median: " "10395"
-```
-
 ## What is the average daily activity pattern?
 Sum the number of steps at each 5-minute interval across all days to see high activity periods.
 Make a time series plot of the 5-minute interval (x-axis)
@@ -124,7 +108,7 @@ print(d)
 maxmin<-with(intsdf, intsdf[which(sums == max(sums)),2])
 maxint<-with(intsdf, intsdf[which(sums == max(sums)),3])
 ```
-The 5-minute interval where the maximum average number of steps are taken is 835, (520 minutes).
+The 5-minute interval where the maximum average number of steps are taken is Interval: 835, (520 minutes).
 
 ## Imputing missing values
 The presence of missing days may introduce bias into some
@@ -145,7 +129,9 @@ strategy does not need to be sophisticated. For example, you could use
 the mean/median for that day, or the mean for that 5-minute interval, etc.
 
 ```r
+# Find the mean value for steps at each interval
 sm2<- with(actdata, tapply(steps,interval,mean, na.rm=TRUE))
+# Save these values in a data frame with the corresponding interval value
 fsdf<-data.frame(sm2)
 names(fsdf)<- c("means")
 fsdf<- mutate(fsdf,interval = as.numeric(rownames(fsdf)))
@@ -154,11 +140,11 @@ fsdf<- mutate(fsdf,interval = as.numeric(rownames(fsdf)))
 missing data filled in
 
 ```r
+# Add two columns (needFill and filled) to the activity data frame 
 actdata<- mutate(actdata,needFill=is.na(actdata$steps), filled=actdata$steps)
-for(i in 1:nrow(actdata)){
-  if(actdata$needFill[i]==TRUE){
-     actdata$filled[i] <- fsdf$means[fsdf$interval==actdata$interval[i]]
-  }
+# Use the mean interval steps for the replacement values of NA
+for(i in which(actdata$needFill==TRUE)){
+  actdata$filled[i] <- fsdf$means[fsdf$interval==actdata$interval[i]]
 }
 ```
 4. Make a histogram of the total number of steps taken each day and Calculate
@@ -197,20 +183,36 @@ summary(sumsdf)
 ##  3rd Qu.:12811  
 ##  Max.   :21194
 ```
+Answer: The substituted mean interval values do not change the mean and median values of the totals.
 
-```r
-print(c("mean: ", mean(sumsdf$sums)))
-```
-
-```
-## [1] "mean: "           "10766.1886792453"
-```
-
-```r
-print(c("median: ",median(sumsdf$sums)))
-```
-
-```
-## [1] "median: "         "10766.1886792453"
-```
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1. Create a new factor variable in the dataset with two levels - "weekday"
+and "weekend" indicating whether a given date is a weekday or weekend
+day.  
+
+```r
+# New column dayType for factor: weekday, weekend
+# First, add a day column
+actdata<-mutate(actdata,day = weekdays(as.Date(actdata$date)))
+# Second, define the dayType levels
+wf<- factor(actdata$day,levels = c("Sunday","Monday","Tuesday","Wednesday",
+                                   "Thursday","Friday","Saturday"),
+            labels = c("weekend","weekday","weekday","weekday","weekday",
+                       "weekday","weekend"))
+# Third, add the dayType column
+actdata<-mutate(actdata,dayType = wf)
+```
+2. Make a panel plot containing a time series plot of the
+5-minute interval (x-axis) and the average number of steps taken, averaged
+across all weekday days or weekend days (y-axis).
+
+```r
+#The steps per 5-minute interval are calculated.
+library(lattice)
+a1<- actdata %>% group_by(dayType,interval)%>%summarize(avg_steps=mean(filled))
+c<- xyplot(avg_steps~interval | dayType, data=a1)
+print(c)
+```
+
+![](PA1_julieb_files/figure-html/intervalsBydayType-1.png)<!-- -->

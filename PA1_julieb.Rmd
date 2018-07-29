@@ -89,10 +89,8 @@ missing data filled in
 # Add two columns (needFill and filled) to the activity data frame 
 actdata<- mutate(actdata,needFill=is.na(actdata$steps), filled=actdata$steps)
 # Use the mean interval steps for the replacement values of NA
-for(i in 1:nrow(actdata)){
-  if(actdata$needFill[i]==TRUE){
-     actdata$filled[i] <- fsdf$means[fsdf$interval==actdata$interval[i]]
-  }
+for(i in which(actdata$needFill==TRUE)){
+  actdata$filled[i] <- fsdf$means[fsdf$interval==actdata$interval[i]]
 }
 
 ```
@@ -119,3 +117,30 @@ summary(sumsdf)
 Answer: The substituted mean interval values do not change the mean and median values of the totals.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+1. Create a new factor variable in the dataset with two levels - "weekday"
+and "weekend" indicating whether a given date is a weekday or weekend
+day.  
+```{r days}
+# New column dayType for factor: weekday, weekend
+# First, add a day column
+actdata<-mutate(actdata,day = weekdays(as.Date(actdata$date)))
+# Second, define the dayType levels
+wf<- factor(actdata$day,levels = c("Sunday","Monday","Tuesday","Wednesday",
+                                   "Thursday","Friday","Saturday"),
+            labels = c("weekend","weekday","weekday","weekday","weekday",
+                       "weekday","weekend"))
+# Third, add the dayType column
+actdata<-mutate(actdata,dayType = wf)
+
+```
+2. Make a panel plot containing a time series plot of the
+5-minute interval (x-axis) and the average number of steps taken, averaged
+across all weekday days or weekend days (y-axis).
+```{r intervalsBydayType, echo=TRUE}
+#The steps per 5-minute interval are calculated.
+library(lattice)
+a1<- actdata %>% group_by(dayType,interval)%>%summarize(avg_steps=mean(filled))
+c<- xyplot(avg_steps~interval | dayType, data=a1)
+print(c)
+```
