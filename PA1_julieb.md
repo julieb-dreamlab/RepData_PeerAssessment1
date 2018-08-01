@@ -54,7 +54,7 @@ names(sumsdf)<- c("sums")
 c<-ggplot(sumsdf, aes(sums))
 d<- c+ geom_histogram(binwidth = 1000)
 d<- d+ labs(x= "Total Steps in a Day")
-d<- d+ labs(y= "Count of Days")
+d<- d+ labs(y= "Frequency, Days having this Total Step Count")
 d<- d+ labs(title= "Histogram of Total Steps in a Day")
 print(d)
 ```
@@ -83,7 +83,7 @@ and the average number of steps taken, averaged across all days (y-axis).
 
 ```r
 #The steps per 5-minute interval are calculated.
-sm1<- with(actdata, tapply(steps,interval,sum, na.rm=TRUE))
+sm1<- with(actdata, tapply(steps,interval,mean, na.rm=TRUE))
 intsdf<-data.frame(sm1)
 names(intsdf)<- c("sums")
 intsdf<- mutate(intsdf,minutes = 5*(1:nrow(intsdf)),interval = as.numeric(rownames(intsdf)))
@@ -162,7 +162,7 @@ names(sumsdf)<- c("sums")
 c<-ggplot(sumsdf, aes(sums))
 d<- c+ geom_histogram(binwidth = 1000)
 d<- d+ labs(x= "Total Steps in a Day")
-d<- d+ labs(y= "Count of Days")
+d<- d+ labs(y= "Frequency, Days having this Total Step Count")
 d<- d+ labs(title= "Histogram of Total Steps in a Day (NAs replaced with Interval Mean Value")
 print(d)
 ```
